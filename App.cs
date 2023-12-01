@@ -12,23 +12,25 @@ var action = Command(args, Args("generate", "([0-9]+)"), m =>
     {
         var year = int.Parse(m[1]);
 
-        if(tSolvers.Any(tsolver =>
-            SolverExtensions.Year(tsolver) == year))
+        if (tSolvers.Any(tsolver => SolverExtensions.Year(tsolver) == year))
         {
-            return () => Console.WriteLine($"Calendar for year {year} already exists.");
+            return () => throw new AocException("Calendar already exists", $"Calendar for year {year} already exists.");
         }
 
-        return () => Generator.Generate(year); //Console.WriteLine("TODO: Put new puzzle successfully.");
+        return () =>
+        {
+            new Generator().Generate(year);
+            Console.WriteLine($"Successfully generated year {year}.");
+        };
     }) ??
     Command(args, Args("sample", "([0-9]+)/(Day)?([0-9]+)"), m =>
     {
-        // Todo: Make sample an optional argument, and combine it with the next command for less code repetition.
         var year = int.Parse(m[1]);
         var day = int.Parse(m[3]);
 
         if (day is < 1 or > 25)
         {
-            return () => Console.WriteLine($"Calendar is only 1 through 25.");
+            return () => throw new AocException("Invalid date", "Calendar is only 1 through 25");
         }
 
         var tSolverSelected = tSolvers.FirstOrDefault(tsolver =>
@@ -37,10 +39,10 @@ var action = Command(args, Args("generate", "([0-9]+)"), m =>
 
         if (tSolverSelected == null)
         {
-            return () => Console.WriteLine($"No puzzle found for {year}/{day}.");
+            return () => throw new AocException("Puzzle not found", $"No puzzle found for {year}/{day}.");
         }
 
-        return () => Runner.RunAll(GetSolvers(tSolverSelected), useSampleDatta: true);
+        return () => new Runner().RunAll(GetSolvers(tSolverSelected), useSampleDatta: true);
     }) ??
     Command(args, Args("([0-9]+)/(Day)?([0-9]+)"), m =>
     {
@@ -49,7 +51,7 @@ var action = Command(args, Args("generate", "([0-9]+)"), m =>
 
         if (day is < 1 or > 25)
         {
-            return () => Console.WriteLine($"Calendar is only 1 through 25.");
+            return () => throw new AocException("Invalid date", "Calendar is only 1 through 25");
         }
 
         var tSolverSelected = tSolvers.FirstOrDefault(tsolver =>
@@ -58,10 +60,21 @@ var action = Command(args, Args("generate", "([0-9]+)"), m =>
 
         if (tSolverSelected == null)
         {
-            return () => Console.WriteLine($"No puzzle found for {year}/{day}.");
+            return () => throw new AocException("Puzzle not found", $"No puzzle found for {year}/{day}.");
         }
 
-        return () => Runner.RunAll(GetSolvers(tSolverSelected));
+        return () => new Runner().RunAll(GetSolvers(tSolverSelected));
+    }) ?? (() => {
+        var dt = DateTime.Now;
+        var tSolverDevelopment = tSolvers.FirstOrDefault(tsolver => SolverExtensions.Year(tsolver) == dt.Year &&
+            SolverExtensions.Day(tsolver) == dt.Day);
+        if (tSolverDevelopment == null)
+        {
+            Console.WriteLine("No action.");
+            return;
+        }
+
+        new Runner().RunSolver(GetSolvers(tSolverDevelopment!)[0], false);
     });
 
 string[] Args(params string[] regex) => regex;
@@ -76,16 +89,15 @@ catch (AocException ex)
 }
 catch (NullReferenceException)
 {
-    // Todo: Add a default action.
-    Console.WriteLine("No action.");
-    Environment.Exit(0);
+    Console.WriteLine("Action was null.");
+    Environment.Exit(1);
 }
 catch (FileNotFoundException ex)
 {
     Console.WriteLine(ex.Message);
 }
 
-ISolver[] GetSolvers(params Type[] tsolver) 
+ISolver[] GetSolvers(params Type[] tsolver)
     => tsolver.Select(t => Activator.CreateInstance(t) as ISolver)
         .Where(x => x != null)
         .ToArray()!;
@@ -104,7 +116,7 @@ Action? Command(string[] args, string[] regexes, Func<string[], Action> parse)
         return parse(matches.SelectMany(m =>
             m.Groups.Count > 1
                 ? m.Groups.Cast<Group>().Skip(1).Select(g => g.Value)
-                : [ m.Value ]
+                : [m.Value]
         ).ToArray());
     }
     catch

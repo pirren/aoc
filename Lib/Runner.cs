@@ -39,8 +39,8 @@ static class SolverExtensions
                     .GetType()
                     .GetCustomAttribute(typeof(PuzzleName)) as PuzzleName
             ).Name;
-        } 
-        catch (ArgumentNullException e) 
+        }
+        catch (ArgumentNullException e)
         {
             throw new ArgumentNullException(e.Message);
         }
@@ -73,7 +73,7 @@ static class SolverExtensions
 
     public static string WorkingDir(int year)
     {
-        return Path.Combine(year.ToString());
+        return Path.Combine($"Y{year}");
     }
 
     public static string WorkingDir(int year, int day)
@@ -89,7 +89,7 @@ static class SolverExtensions
 
 class Runner
 {
-    private static string GetNormalizedInput(string file)
+    private string GetNormalizedInput(string file)
     {
         var input = File.ReadAllText(file);
 
@@ -101,14 +101,14 @@ class Runner
         return input;
     }
 
-    public static void RunSolver(ISolver solver, bool useSampleData)
+    public void RunSolver(ISolver solver, bool useSampleData)
     {
         var workingDir = solver.WorkingDir();
         var indent = "    ";
 
         Console.WriteLine($"{indent}{solver.DayName()}: {solver.GetName()}");
 
-        var file = Path.Combine(workingDir, useSampleData ? "sample.in" : "input.in");
+        var file = Path.Combine(workingDir, useSampleData ? "sample.in" : "indata.in");
         var input = GetNormalizedInput(file);
 
         foreach (var result in solver.Solve(input))
@@ -117,7 +117,7 @@ class Runner
         }
     }
 
-    public static void RunAll(ISolver[] solvers, bool useSampleDatta = false)
+    public void RunAll(ISolver[] solvers, bool useSampleDatta = false)
     {
         foreach (var solver in solvers)
         {

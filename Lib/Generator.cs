@@ -1,31 +1,24 @@
-﻿using System.Text.RegularExpressions;
+﻿namespace aoc_runner;
 
-namespace aoc_runner;
-
-static partial class Generator
+class Generator
 {
-    public static Task Generate(int year)
+    public Task Generate(int year)
     {
         var basePath = "..\\..\\..\\";
-        var yearFolder = $"Y{year}";
-        Directory.CreateDirectory(Path.Combine(basePath, yearFolder));
-        
-        for(var day = 1; day <= 25; day++)
+        Directory.CreateDirectory(Path.Combine(basePath, SolverExtensions.WorkingDir(year)));
+
+        for (var day = 1; day <= 3; day++)
         {
-            var dayFolder = $"Day{day:00}";
-            var filePath = Path.Combine(basePath, yearFolder, dayFolder, $"Solution.cs");
-            Directory.CreateDirectory(Path.Combine(basePath, yearFolder, dayFolder));
-            GeneratePuzzle(year, day).WriteToFile(filePath);
+            var workingDir = Path.Combine(basePath, SolverExtensions.WorkingDir(year, day));
+            Directory.CreateDirectory(workingDir);
+            GetIndataTemplate().WriteToFile(Path.Combine(workingDir, $"indata.in"));
+            GetIndataTemplate().WriteToFile(Path.Combine(workingDir, $"sample.in"));
+            GetPuzzleTemplate(year, day).WriteToFile(Path.Combine(workingDir, $"Solution.cs"));
         }
         return Task.CompletedTask;
     }
 
-    private static void WriteToFile(this string st, string path)
-    {
-        File.WriteAllText(path, st);
-    }
-
-    public static string GeneratePuzzle(int year, int day)
+    private string GetPuzzleTemplate(int year, int day)
     {
         return $@"namespace aoc_runner.Y{year}.Day{day:00};
              |
@@ -45,14 +38,6 @@ static partial class Generator
              |".StripMargin();
     }
 
-    public static string StripMargin(this string st, string margin = "|")
-    {
-        return string.Join("\n",
-            from line in MarginPattern().Split(st)
-            select Regex.Replace(line, @"^\s*" + Regex.Escape(margin), "")
-        );
-    }
-
-    [GeneratedRegex("\r?\n")]
-    private static partial Regex MarginPattern();
+    private static string GetIndataTemplate()
+        => string.Empty;
 }
