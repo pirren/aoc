@@ -36,7 +36,8 @@ partial class Solution : ISolver
     {
         return input.Split('\n')
             .Select(matchPattern)
-            .Sum(m => m.Any(x => x.Success) ? (GetValueFromMatch(m[0]) * 10) + GetValueFromMatch(m[^1]) : 0);
+            .Sum(matches 
+                => matches.Any(match => match.Success) ? (GetValueFromMatch(matches[0]) * 10) + GetValueFromMatch(matches[^1]) : 0);
     }
 
     [GeneratedRegex(@"\d")]

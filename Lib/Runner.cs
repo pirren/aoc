@@ -30,6 +30,7 @@ static class SolverExtensions
             yield return res;
         }
     }
+
     public static string GetName(this ISolver solver)
     {
         try
@@ -58,7 +59,7 @@ static class SolverExtensions
 
     public static int Year(Type t)
     {
-        return int.Parse(t.FullName.Split('.')[1].Substring(1));
+        return int.Parse(t.FullName.Split('.')[1][1..]);
     }
 
     public static int Day(this ISolver solver)
@@ -117,11 +118,11 @@ class Runner
         }
     }
 
-    public void RunAll(ISolver[] solvers, bool useSampleDatta = false)
+    public void RunAll(ISolver[] solvers, bool useSampleData = false)
     {
         foreach (var solver in solvers)
         {
-            RunSolver(solver, useSampleDatta);
+            RunSolver(solver, useSampleData);
         }
     }
 }

@@ -42,7 +42,7 @@ var action = Command(args, Args("generate", "([0-9]+)"), m =>
             return () => throw new AocException("Puzzle not found", $"No puzzle found for {year}/{day}.");
         }
 
-        return () => new Runner().RunAll(GetSolvers(tSolverSelected), useSampleDatta: true);
+        return () => new Runner().RunAll(GetSolvers(tSolverSelected), useSampleData: true);
     }) ??
     Command(args, Args("([0-9]+)/(Day)?([0-9]+)"), m =>
     {
