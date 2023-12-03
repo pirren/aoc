@@ -7,7 +7,7 @@ class Solution : ISolver
 {
     public object PartOne(string input)
     {
-        return ParseGames(input).Sum(GamePossible);
+        return ParseGames(input).Where(GamePossible).Sum(g => g.Id);
     }
 
     public object PartTwo(string input) 
@@ -15,15 +15,9 @@ class Solution : ISolver
         return ParseGames(input).Sum(CubePower);
     }
 
-    private int GamePossible(Game g)
-    {
-        return g.HighestRed <= 12 && g.HighestGreen <= 13 && g.HighestBlue <= 14 ? g.Id : 0;
-    }
+    private bool GamePossible(Game g) => g.HighestRed <= 12 && g.HighestGreen <= 13 && g.HighestBlue <= 14;
 
-    private int CubePower(Game g)
-    {
-        return g.HighestRed * g.HighestGreen * g.HighestBlue;
-    }
+    private int CubePower(Game g) => g.HighestRed * g.HighestGreen * g.HighestBlue;
 
     private IEnumerable<Game> ParseGames(string rounds)
     {
