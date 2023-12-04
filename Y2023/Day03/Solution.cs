@@ -26,20 +26,20 @@ class Solution : ISolver
             for (int y = 0; y < map.Length; y++)
             {
                 Number activeNumber = null!;
-                List<char> values = null!;
+                List<char> numberValues = null!;
                 for (int x = 0; x < maxLength; x++)
                 {
                     var c = map[y][x];
                     if (c == '.')
                     {
-                        AddAndFlushNumber(ref activeNumber, ref values);
+                        AddAndFlushNumber(ref activeNumber, numberValues);
                         activeNumber = null!;
                         continue;
                     }
 
                     if(!char.IsNumber(c))
                     {
-                        AddAndFlushNumber(ref activeNumber, ref values);
+                        AddAndFlushNumber(ref activeNumber, numberValues);
                         Symbols.Add(new Symbol(c == '*', x, y));
                         continue;
                     }
@@ -47,24 +47,23 @@ class Solution : ISolver
                     if (activeNumber == null)
                     {
                         activeNumber = new Number(-1, [(x, y)]);
-                        values = [ c ];
+                        numberValues = [ c ];
                         continue;
                     }
 
-                    values.Add(c);
+                    numberValues.Add(c);
                     activeNumber.Positions.Add((x, y));
                 }
-                AddAndFlushNumber(ref activeNumber, ref values);
+                AddAndFlushNumber(ref activeNumber, numberValues);
             }
         }
 
-        private void AddAndFlushNumber(ref Number activeNumber, ref List<char> values)
+        private void AddAndFlushNumber(ref Number activeNumber, List<char> values)
         {
             if(activeNumber == null) 
                 return;
             Numbers.Add(activeNumber with { Value = int.Parse(new string(values.ToArray())) });
             activeNumber = null!;
-            values = null!;
         }
 
         public int SumValidParts()
