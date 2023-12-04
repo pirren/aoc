@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace aoc_runner.Y2023.Day04;
 
 [PuzzleName("Scratchcards")]
@@ -5,7 +7,7 @@ class Solution : ISolver
 {
     public object PartOne(string input) 
     {
-        return new CardStack(input).GetCards().Sum(card => card.Points());
+        return new CardStack(input).CountPoints();
     }
 
     public object PartTwo(string input) 
@@ -21,27 +23,33 @@ class Solution : ISolver
         public CardStack(string input)
         {
             var lines = input.Split('\n');
-            for(int i = 0; i < lines.Length; i++)
+            for (int i = 0; i < lines.Length; i++)
             {
-                var winning = lines[i].Split('|')[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(2).Select(int.Parse);
-                var have = lines[i].Split('|')[^1].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
+                var numbers = lines[i].Split(':')[^1].Split('|');
+
+                var winningNumbers = numbers[0]
+                    .ExtractNumbers()
+                    .Intersect(numbers[^1].ExtractNumbers());
 
                 stack.Add(i, 1);
-                cards.Add(new ScratchCard(i, winning, have.ToArray()));
+                cards.Add(new ScratchCard(i, winningNumbers.ToArray()));
             }
         }
 
-        public IEnumerable<ScratchCard> GetCards() => cards;
+        public int CountPoints()
+        {
+            return cards.Sum(card => card.Points());
+        }
 
         public CardStack WinMore()
         {
             foreach(var id in stack.Keys)
             {
-                var points = cards[id].MatchingNumbers();
-                for(var p = id + 1; p <= id + points; p++)
+                var points = cards[id].WinningNumbers.Length;
+                for(var idNext = id + 1; idNext <= id + points; idNext++)
                 {
-                    if (stack.TryGetValue(p, out int value))
-                        stack[p] = value + (1 * stack[id]);
+                    if (stack.ContainsKey(idNext))
+                        stack[idNext] += stack[id];
                 }
             }
 
@@ -51,28 +59,19 @@ class Solution : ISolver
         public int CountCards() => stack.Sum(x => x.Value);
     }
 
-    record ScratchCard(int Id, IEnumerable<int> WinningNumbers, int[] Numbers)
+    record ScratchCard(int Id, int[] WinningNumbers)
     {
         public int Points()
-        {
-            var points = 0;
-            foreach(var target in WinningNumbers)
-            {
-                if (Numbers.Any(number => number == target))
-                    points = points == 0 ? 1 : points * 2;
-            }
-            return points;
-        }
-
-        public int MatchingNumbers()
-        {
-            var matches = 0;
-            foreach (var target in WinningNumbers)
-            {
-                if (Numbers.Any(number => number == target))
-                    matches++;
-            }
-            return matches;
-        }
+            => WinningNumbers.Length == 0
+                ? 0 : (int)Math.Pow(2, WinningNumbers.Length - 1);
     };
+}
+
+internal static partial class Ext4
+{
+    public static IEnumerable<int> ExtractNumbers(this string data)
+        => NumberPattern().Matches(data).Select(match => int.Parse(match.Value));
+
+    [GeneratedRegex(@"(\d+)")]
+    private static partial Regex NumberPattern();
 }
