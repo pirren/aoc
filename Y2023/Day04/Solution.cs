@@ -36,11 +36,6 @@ class Solution : ISolver
             }
         }
 
-        public int CountPoints()
-        {
-            return cards.Sum(card => card.Points());
-        }
-
         public CardStack WinMore()
         {
             foreach(var id in stack.Keys)
@@ -56,7 +51,9 @@ class Solution : ISolver
             return this;
         }
 
-        public int CountCards() => stack.Sum(x => x.Value);
+        public int CountPoints() => cards.Sum(card => card.Points());
+        
+        public int CountCards() => stack.Sum(tcard => tcard.Value);
     }
 
     record ScratchCard(int Id, int[] WinningNumbers)

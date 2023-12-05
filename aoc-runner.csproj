@@ -9,6 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Update="Y2015\Day07\indata.in">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Y2015\Day07\sample.in">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Y2023\Day01\indata.in">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
