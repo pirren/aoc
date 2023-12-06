@@ -6,14 +6,10 @@ namespace aoc_runner.Y2023.Day04;
 class Solution : ISolver
 {
     public object PartOne(string input) 
-    {
-        return new CardStack(input).CountPoints();
-    }
+        => new CardStack(input).CountPoints();
 
     public object PartTwo(string input) 
-    {
-        return new CardStack(input).WinMore().CountCards();
-    }
+        => new CardStack(input).WinMore().CountCards();
 
     class CardStack
     {
@@ -23,7 +19,7 @@ class Solution : ISolver
         public CardStack(string input)
         {
             var lines = input.Split('\n');
-            for (int i = 0; i < lines.Length; i++)
+            for (var i = 0; i < lines.Length; i++)
             {
                 var numbers = lines[i].Split(':')[^1].Split('|');
 
@@ -58,16 +54,14 @@ class Solution : ISolver
 
     record ScratchCard(int Id, int[] WinningNumbers)
     {
-        public int Points()
-            => WinningNumbers.Length == 0
-                ? 0 : (int)Math.Pow(2, WinningNumbers.Length - 1);
-    };
+        public int Points() => (int)Math.Pow(2, WinningNumbers.Length - 1);
+    }
 }
 
 internal static partial class Ext4
 {
     public static IEnumerable<int> ExtractNumbers(this string data)
-        => NumberPattern().Matches(data).Select(match => int.Parse(match.Value));
+        => from m in NumberPattern().Matches(data) select int.Parse(m.Value);
 
     [GeneratedRegex(@"(\d+)")]
     private static partial Regex NumberPattern();

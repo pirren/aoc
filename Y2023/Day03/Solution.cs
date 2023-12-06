@@ -88,12 +88,11 @@ class Solution : ISolver
 
         private int GetSumFromPart(Number n)
         {
+            var symbolPositions = Symbols.Select(symbol => symbol.Position);
             foreach (var edge in n.Positions.SelectMany(GetSurroundingEdges).Distinct())
             {
-                if (Symbols.Select(symbol => symbol.Position).Contains(edge))
-                {
+                if (symbolPositions.Contains(edge))
                     return n.Value;
-                }
             }
             return 0;
         }
