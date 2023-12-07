@@ -6,34 +6,33 @@ namespace aoc_runner.Y2023.Day02;
 class Solution : ISolver
 {
     public object PartOne(string input)
-    {
-        return ParseGames(input).Where(GamePossible).Sum(g => g.Id);
-    }
+        => Solve(input, PossibleGame);
 
-    public object PartTwo(string input) 
-    {
-        return ParseGames(input).Sum(CubePower);
-    }
+    public object PartTwo(string input)
+        => ParseGames(input).Sum(CubePower);
 
-    private bool GamePossible(Game g) => g.HighestRed <= 12 && g.HighestGreen <= 13 && g.HighestBlue <= 14;
+    int Solve(string input, Func<Game, int> parse)
+        => ParseGames(input).Sum(parse);
 
-    private int CubePower(Game g) => g.HighestRed * g.HighestGreen * g.HighestBlue;
+    int PossibleGame(Game g)
+        => g.Red <= 12 && g.Green <= 13 && g.Blue <= 14 ? g.Id : 0;
 
-    private IEnumerable<Game> ParseGames(string rounds)
-    {
-        foreach (var set in rounds.Split('\n'))
-        {
-            yield return new Game(
-                    int.Parse(set.Split(':')[0].Split(' ')[^1]), 
-                    HighestSeenColor(set, "red"), 
-                    HighestSeenColor(set, "green"), 
-                    HighestSeenColor(set, "blue")
-                );
-        }
-    }
+    int CubePower(Game g) => g.Red * g.Green * g.Blue;
 
-    private int HighestSeenColor(string set, string color)
-        => Regex.Matches(set, @"([0-9]+)(?= " + color + ")").Max(cubes => int.Parse(cubes.Value));
+    Game[] ParseGames(string rounds)
+        => rounds.Split('\n').Select(set =>
+                new Game(
+                    Id(set),
+                    Color(set, "red"),
+                    Color(set, "green"),
+                    Color(set, "blue")
+                )).ToArray();
 
-    record Game(int Id, int HighestRed, int HighestGreen, int HighestBlue);
+    int Color(string indata, string color)
+        => (from m in Regex.Matches(indata, @"([0-9]+)(?= " + color + ")") select int.Parse(m.Value)).Max();
+
+    int Id(string indata)
+        => (from m in Regex.Matches(indata, @"(\d+)(?=:)") select int.Parse(m.Value)).Single();
+
+    record Game(int Id, int Red, int Green, int Blue);
 }
