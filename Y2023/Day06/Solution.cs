@@ -5,25 +5,23 @@ namespace aoc_runner.Y2023.Day06;
 [PuzzleName("Wait For It")]
 class Solution : ISolver
 {
-    public object PartOne(string input) 
-        => PartOneHistories(input).Select(StrategiesForWin).Aggregate(1, CalculateErrorMargin);
+    public object PartOne(string input)
+        => WinningStrategies(input, PartOneHistories);
 
     public object PartTwo(string input)
-        => PartTwoHistories(input).Select(StrategiesForWin).Aggregate(1, CalculateErrorMargin);
+        => WinningStrategies(input, PartTwoHistories);
+
+    int WinningStrategies(string input, Func<string, RaceHistory[]> parse)
+    {
+        return parse(input).Select(ValidStrategies).Aggregate(1, CalculateErrorMargin);
+    }
 
     int CalculateErrorMargin(int accumulator, int value)
         => accumulator * value;
 
-    int StrategiesForWin(RaceHistory history)
-    {
-        var valid = 0;
-        for (int speed = 1; speed <= history.Duration; speed++)
-        {
-            if (speed * (history.Duration - speed) > history.RecordTime)
-                valid++;
-        }
-        return valid;
-    }
+    int ValidStrategies(RaceHistory history)
+        => Enumerable.Range(1, (int)history.Duration)
+            .Count(speed => speed * (history.Duration - speed) > history.RecordTime);
 
     RaceHistory[] PartOneHistories(string input)
     {

@@ -52,7 +52,7 @@ class Solution : ISolver
 
     record Hand : IComparable<Hand>
     {
-        private static Dictionary<char, int> CardValue = new()
+        private static Dictionary<char, int> CardRanks = new()
         {
             { '2', 2 }, { '3', 3 }, { '4', 4 }, { '5', 5 }, { '6', 6 }, 
             { '7', 7 }, { '8', 8 }, { '9', 9 }, { 'T', 10 }, { 'J', 11 }, 
@@ -65,17 +65,17 @@ class Solution : ISolver
             Bid = bid;
 
             if (jokerRules)
-                CardValue['J'] = -1;
+                CardRanks['J'] = -1;
 
             PatternValue = groups switch
             {
-                _ when groups.Contains(5) => PatternValue.Five,
-                _ when groups.Contains(4) => PatternValue.Four,
-                _ when groups.Contains(3) && groups.Contains(2) => PatternValue.FullHouse,
-                _ when groups.Contains(3) => PatternValue.Three,
-                _ when groups.Count(count => count == 2) == 2 => PatternValue.TwoPair,
-                _ when groups.Contains(2) => PatternValue.Pair,
-                _ => PatternValue.High
+                _ when groups.Contains(5) => 6,
+                _ when groups.Contains(4) => 5,
+                _ when groups.Contains(3) && groups.Contains(2) => 4,
+                _ when groups.Contains(3) => 3,
+                _ when groups.Count(count => count == 2) == 2 => 2,
+                _ when groups.Contains(2) => 1,
+                _ => 0
             };
         }
 
@@ -90,20 +90,9 @@ class Solution : ISolver
                 .FirstOrDefault(result => result != 0);
         }
 
-        IEnumerable<int> CardValues => Cards.Select(c => CardValue[c]);
+        IEnumerable<int> CardValues => Cards.Select(c => CardRanks[c]);
         public string Cards { get; init; }
         public int Bid { get; init; }
-        public PatternValue PatternValue { get; init; } = PatternValue.High;
-    }
-
-    enum PatternValue
-    {
-        High,
-        Pair,
-        TwoPair,
-        Three,
-        FullHouse,
-        Four,
-        Five
+        public int PatternValue { get; init; } = 0;
     }
 }

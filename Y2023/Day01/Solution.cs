@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
 namespace aoc_runner.Y2023.Day01;
@@ -6,43 +7,33 @@ namespace aoc_runner.Y2023.Day01;
 partial class Solution : ISolver
 {
     public object PartOne(string input)
-    {
-        return Calibrate(input, line => DigitsPattern().Matches(line));
-    }
+        => Solve(input, PartOneValues);
 
     public object PartTwo(string input)
-    {
-        return Calibrate(input, line => DigitsSpelledOutPattern().Matches(line));
-    }
+        => Solve(input, PartTwoValues);
 
-    private int GetValueFromMatch(Match match)
-    {
-        // Return the int value
-        if (char.IsDigit(match.Value[0])) 
-            return match.Value[0] - '0';
+    private int Solve(string input, Func<string, IEnumerable<(int, int)>> values)
+        => values(input).Sum(values => values.Item1 * 10 + values.Item2);
 
-        return literalMap.TryGetValue(match.Value, out var result)
-            ? result 
-            : throw new Exception();
-    }
+    private IEnumerable<(int, int)> PartOneValues(string input)
+        => input.Split('\n').Select(line => Regex.Matches(line, @"\d"))
+            .Select(Digits);
+    private IEnumerable<(int, int)> PartTwoValues(string input)
+        => input.Split('\n')
+            .Select(ReplaceLiteralNumbers)
+            .Select(line => Regex.Matches(line, @"\d"))
+            .Select(Digits);
 
-    private Dictionary<string, int> literalMap = new() {
-        { "n", 1 }, { "w", 2 }, { "hre", 3 },
-        { "ou", 4 }, { "iv", 5 }, { "i", 6},
-        { "eve", 7 }, { "igh", 8 }, { "in", 9 }
+    (int, int) Digits(MatchCollection matches)
+        => ((matches[0].Value[0] - '0'), matches[^1].Value[0] - '0');
+
+    string ReplaceLiteralNumbers(string input)
+        => remapper.Aggregate(input, (current, pairs) => current.Replace(pairs.Key, pairs.Value));
+
+    Dictionary<string, string> remapper = new() {
+        { "one", "on1e" }, { "two", "t2wo" }, { "three", "thr3ee" },
+        { "four", "fo4ur" }, { "five", "fi5ve" }, { "six", "si6x"},
+        { "seven", "sev7en" }, { "eight", "ei8ght" }, { "nine", "ni9ne" }
     };
 
-    private int Calibrate(string input, Func<string, MatchCollection> matchPattern)
-    {
-        return input.Split('\n')
-            .Select(matchPattern)
-            .Sum(matches 
-                => matches.Any(match => match.Success) ? (GetValueFromMatch(matches[0]) * 10) + GetValueFromMatch(matches[^1]) : 0);
-    }
-
-    [GeneratedRegex(@"\d")]
-    private static partial Regex DigitsPattern();
-
-    [GeneratedRegex(@"(\d)|((?<=n)in(?=e)|(?<=e)igh(?=t)|(?<=s)eve(?=n)|(?<=s)i(?=x)|(?<=f)iv(?=e)|(?<=f)ou(?=r)|(?<=t)hre(?=e)|(?<=t)w(?=o)|(?<=o)n(?=e))")]
-    private static partial Regex DigitsSpelledOutPattern();
 }
