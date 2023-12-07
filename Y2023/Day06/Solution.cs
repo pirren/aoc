@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 
 namespace aoc_runner.Y2023.Day06;
@@ -6,53 +7,40 @@ namespace aoc_runner.Y2023.Day06;
 class Solution : ISolver
 {
     public object PartOne(string input)
-        => WinningStrategies(input, PartOneHistories);
+        => Solve(input, PartOneHistories);
 
     public object PartTwo(string input)
-        => WinningStrategies(input, PartTwoHistories);
+        => Solve(input, PartTwoHistories);
 
-    int WinningStrategies(string input, Func<string, RaceHistory[]> parse)
-    {
-        return parse(input).Select(ValidStrategies).Aggregate(1, CalculateErrorMargin);
-    }
-
-    int CalculateErrorMargin(int accumulator, int value)
-        => accumulator * value;
+    int Solve(string input, Func<string, RaceHistory[]> parse)
+        => parse(input).Select(ValidStrategies).Aggregate(1, (acc, value) => acc * value);
 
     int ValidStrategies(RaceHistory history)
-        => Enumerable.Range(1, (int)history.Duration)
-            .Count(speed => speed * (history.Duration - speed) > history.RecordTime);
+        => Enumerable.Range(1, (int)history.Time)
+            .Count(speed => speed * (history.Time - speed) > history.Distance);
 
     RaceHistory[] PartOneHistories(string input)
     {
         var parts = input.Split('\n');
-        var durations = parts[0].MultipleRaceData();
-        var distances = parts[^1].MultipleRaceData();
-        return durations.Zip(distances).Select(x => new RaceHistory(x.First, x.Second)).ToArray();
+        var times = Numbers(parts[0], "Time");
+        var distances = Numbers(parts[^1], "Distance");
+        return times.Zip(distances).Select(x => new RaceHistory(x.First, x.Second)).ToArray();
     }
 
     RaceHistory[] PartTwoHistories(string input)
     {
         var parts = input.Split('\n');
-        var duration = parts[0].SingleRaceData();
-        var distance = parts[^1].SingleRaceData();
-        return [new RaceHistory(duration, distance)];
+        var time = Number(parts[0], "Time");
+        var distance = Number(parts[^1], "Distance");
+        return [new RaceHistory(time, distance)];
     }
 
-    record RaceHistory(long Duration, long RecordTime);
-}
+    IEnumerable<int> Numbers(string input, string selector)
+        => input.Replace(selector + ": ", string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(int.Parse);
 
-static partial class Ext6
-{
-    public static IEnumerable<int> MultipleRaceData(this string str)
-        => str.Numbers().Select(r => int.Parse(r.Value));
+    long Number(string input, string selector)
+        => long.Parse(string.Concat(input.Replace(selector + ": ", string.Empty).Where(char.IsNumber)));
 
-    public static long SingleRaceData(this string str)
-        => long.Parse(string.Join("", str.Numbers().Select(x => x.Value)));
-
-    private static IEnumerable<Match> Numbers(this string str)
-        => Numbers().Matches(str).Cast<Match>();
-
-    [GeneratedRegex(@"\d+")]
-    private static partial Regex Numbers();
+    record RaceHistory(long Time, long Distance);
 }
