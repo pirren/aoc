@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
 namespace aoc_runner.Y2023.Day01;
@@ -12,13 +11,13 @@ partial class Solution : ISolver
     public object PartTwo(string input)
         => Solve(input, PartTwoValues);
 
-    private int Solve(string input, Func<string, IEnumerable<(int, int)>> values)
+    int Solve(string input, Func<string, IEnumerable<(int, int)>> values)
         => values(input).Sum(values => values.Item1 * 10 + values.Item2);
 
-    private IEnumerable<(int, int)> PartOneValues(string input)
+    IEnumerable<(int, int)> PartOneValues(string input)
         => input.Split('\n').Select(line => Regex.Matches(line, @"\d"))
             .Select(Digits);
-    private IEnumerable<(int, int)> PartTwoValues(string input)
+    IEnumerable<(int, int)> PartTwoValues(string input)
         => input.Split('\n')
             .Select(ReplaceLiteralNumbers)
             .Select(line => Regex.Matches(line, @"\d"))
@@ -35,5 +34,4 @@ partial class Solution : ISolver
         { "four", "fo4ur" }, { "five", "fi5ve" }, { "six", "si6x"},
         { "seven", "sev7en" }, { "eight", "ei8ght" }, { "nine", "ni9ne" }
     };
-
 }
