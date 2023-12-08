@@ -34,8 +34,7 @@ class Solution : ISolver
     int SolveTwo(string input)
     {
         var (directions, nodes) = Parse(input);
-
-        Queue<string> positions = new(nodes.Keys.Where(position => position.EndsWith('A')));
+        Queue<string> positions = new([.. nodes.Keys.Where(position => position.EndsWith('A'))]);
         var tracks = positions.Count;
 
         for(var steps = 0; steps < int.MaxValue; steps++)
