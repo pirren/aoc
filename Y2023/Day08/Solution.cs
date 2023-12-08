@@ -48,6 +48,6 @@ class Solution : ISolver
     Dictionary<string, string[]> Map(string input)
         => (from line in input.Split('\n').Skip(2)
             let positions = (from m in Regex.Matches(line, @"(\w+)") select m.Value).ToArray()
-            select (positions[0], positions.Skip(1).ToArray()))
+            select (positions[0], positions[1..].ToArray()))
         .ToDictionary();
 }
