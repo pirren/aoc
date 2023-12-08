@@ -4,115 +4,80 @@ namespace aoc_runner.Y2023.Day03;
 class Solution : ISolver
 {
     public object PartOne(string input)
-    {
-        return new Engine(input).SumValidParts();
-    }
+        => Solve(input, ValidParts); 
 
     public object PartTwo(string input)
+        => Solve(input, GearRatios); 
+
+    int Solve(string input, Func<Schematic, int> procedure)
+        => procedure(Engine(input));
+
+
+    int GearRatios(Schematic engine) => 
+        engine.Symbols
+        .Where(symbol => symbol.IsGear)
+        .Sum(gear =>
+        {
+            var edges = SurroundingEdges(gear.Position);
+            var numbers = engine.Numbers
+                .Where(number => number.Positions.Any(edges.Contains))
+                .ToArray();
+            return numbers.Length == 2 ? numbers.Select(num => num.Value).Aggregate((a, b) => a * b) : 0;
+        });
+
+    int ValidParts(Schematic engine) =>
+        engine.Numbers
+        .Select(num => (num.Value, Edges: num.Positions.SelectMany(SurroundingEdges).Distinct()))
+        .Where(num => engine.Symbols.Any(symbol => num.Edges.Contains(symbol.Position)))
+        .Sum(num => num.Value);
+
+    IEnumerable<(int x, int y)> SurroundingEdges((int x, int y) position)
     {
-        return new Engine(input).SumGearRatios();
+        for (int y = position.y - 1; y <= position.y + 1; y++)
+        {
+            for (int x = position.x - 1; x <= position.x + 1; x++)
+            {
+                yield return (x, y);
+            }
+        }
     }
 
-    class Engine
+    Schematic Engine(string input)
     {
-        readonly List<Number> Numbers = [];
-        readonly HashSet<Symbol> Symbols = [];
-
-        public Engine(string input)
+        List<Number> numbers = [];
+        HashSet<Symbol> symbols = [];
+        foreach (var (y, line) in input.Split('\n').Select((line, y) => (y, line)))
         {
-            var map = input.Split('\n');
-
-            var maxLength = map.Max(line => line.Length);
-            for (int y = 0; y < map.Length; y++)
+            var x = 0;
+            while (x < line.Length)
             {
-                Number activeNumber = null!;
-                List<char> numberValues = null!;
-                for (int x = 0; x < maxLength; x++)
+                var c = line[x];
+                if (c == '.')
                 {
-                    var c = map[y][x];
-                    if (c == '.')
-                    {
-                        AddAndFlushNumber(ref activeNumber, numberValues);
-                        activeNumber = null!;
-                        continue;
-                    }
-
-                    if(!char.IsNumber(c))
-                    {
-                        AddAndFlushNumber(ref activeNumber, numberValues);
-                        Symbols.Add(new Symbol(c == '*', x, y));
-                        continue;
-                    }
-
-                    if (activeNumber == null)
-                    {
-                        activeNumber = new Number(-1, [(x, y)]);
-                        numberValues = [ c ];
-                        continue;
-                    }
-
-                    numberValues.Add(c);
-                    activeNumber.Positions.Add((x, y));
+                    x++;
+                    continue;
                 }
-                AddAndFlushNumber(ref activeNumber, numberValues);
-            }
-        }
 
-        private void AddAndFlushNumber(ref Number activeNumber, List<char> values)
-        {
-            if(activeNumber == null) 
-                return;
-            Numbers.Add(activeNumber with { Value = int.Parse(new string(values.ToArray())) });
-            activeNumber = null!;
-        }
-
-        public int SumValidParts()
-        {
-            return Numbers.Sum(GetSumFromPart);
-        }
-
-        public int SumGearRatios()
-        {
-            return Symbols.Where(symbol => symbol.IsGearSymbol).Sum(GetGearRatio);
-        }
-
-        private int GetGearRatio(Symbol s)
-        {
-            var edges = GetSurroundingEdges(s.Position);
-            var numbers = Numbers.Where(number => number.Positions.Any(edges.Contains)).ToArray();
-
-            return numbers.Length == 2 
-                ? numbers.Select(num => num.Value).Aggregate((a, b) => a * b)
-                : 0;
-        }
-
-        private int GetSumFromPart(Number n)
-        {
-            var symbolPositions = Symbols.Select(symbol => symbol.Position);
-            foreach (var edge in n.Positions.SelectMany(GetSurroundingEdges).Distinct())
-            {
-                if (symbolPositions.Contains(edge))
-                    return n.Value;
-            }
-            return 0;
-        }
-
-        private IEnumerable<(int x, int y)> GetSurroundingEdges((int x, int y) position)
-        {
-            for(int y = position.y - 1; y <= position.y + 1; y++)
-            {
-                for(int x = position.x - 1; x <= position.x + 1; x++)
+                if (!char.IsNumber(c))
                 {
-                    yield return (x, y);
+                    symbols.Add(new Symbol(c == '*', (x, y)));
+                    x++;
+                    continue;
                 }
+
+                int start = x;
+                while (x < line.Length && char.IsNumber(line[x]))
+                    x++;
+
+                numbers.Add(new Number(int.Parse(line[start..x]), [.. Enumerable.Range(start, x - start).Select(x => (x, y))]));
             }
         }
+        return new Schematic(numbers, symbols);
     }
 
-    record Number(int Value, HashSet<(int x, int y)> Positions);
+    record Schematic(List<Number> Numbers, HashSet<Symbol> Symbols);
 
-    record Symbol(bool IsGearSymbol, int X, int Y)
-    {
-        public (int x, int y) Position => (X, Y);
-    }
+    record Number(int Value, (int x, int y)[] Positions);
+
+    record Symbol(bool IsGear, (int x, int y) Position);
 }
