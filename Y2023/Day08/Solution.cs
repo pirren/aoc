@@ -22,10 +22,9 @@ class Solution : ISolver
         return cycles.Aggregate(LCM);
     }
 
-    long Traverse(string start, byte[] directions, Dictionary<string, string[]> map, Predicate<string> finished)
+    long Traverse(string currentLocation, byte[] directions, Dictionary<string, string[]> map, Predicate<string> finished)
     {
         var length = 0;
-        var currentLocation = start;
 
         while (!finished(currentLocation))
         {
@@ -42,7 +41,9 @@ class Solution : ISolver
     long LCM(long a, long b) => a / GFC(a, b) * b;
 
     byte[] Directions(string input)
-        => (from m in Regex.Matches(input.Split('\n')[0], @"\w") select (byte)(m.Value[0] == 'L' ? 0 : 1)).ToArray();
+        => (from m in Regex.Matches(input.Split('\n')[0], @"\w") 
+            select (byte)(m.Value[0] == 'L' ? 0 : 1))
+        .ToArray();
 
     Dictionary<string, string[]> Map(string input)
         => (from line in input.Split('\n').Skip(2)
