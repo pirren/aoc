@@ -7,7 +7,7 @@ class Generator
         var basePath = "..\\..\\..\\";
         Directory.CreateDirectory(Path.Combine(basePath, SolverExtensions.WorkingDir(year)));
 
-        for (var day = 7; day <= 7; day++)
+        for (var day = 9; day <= 10; day++)
         {
             var workingDir = Path.Combine(basePath, SolverExtensions.WorkingDir(year, day));
             Directory.CreateDirectory(workingDir);
