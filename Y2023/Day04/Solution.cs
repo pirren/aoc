@@ -5,64 +5,52 @@ namespace aoc_runner.Y2023.Day04;
 [PuzzleName("Scratchcards")]
 class Solution : ISolver
 {
-    public object PartOne(string input) 
-        => new CardStack(input).CountPoints();
+    public object PartOne(string input)
+        => Solve(input, CountPoints);
 
-    public object PartTwo(string input) 
-        => new CardStack(input).WinMore().CountCards();
+    public object PartTwo(string input)
+        => Solve(input, CountCards);
 
-    class CardStack
+    int Solve(string input, Func<Dictionary<Card, int>, int> count)
     {
-        readonly Dictionary<int, int> stack = [];
-        readonly List<ScratchCard> cards = [];
+        var cards = Cards(input);
+        return count(cards);
+    }
 
-        public CardStack(string input)
+    int CountPoints(Dictionary<Card, int> cards)
+        => cards.Keys.Sum(card => card.Points());
+
+    int CountCards(Dictionary<Card, int> cards)
+    {
+        var orderedCards = cards.Keys.ToArray();
+        for (var i = 0; i < orderedCards.Length; i++)
         {
-            var lines = input.Split('\n');
-            for (var i = 0; i < lines.Length; i++)
+            var current = orderedCards[i];
+            var points = current.Matched.Length;
+            for (var j = current.Id + 1; j <= current.Id + points && j < orderedCards.Length; j++)
             {
-                var numbers = lines[i].Split(':')[^1].Split('|');
-
-                var winningNumbers = numbers[0]
-                    .ExtractNumbers()
-                    .Intersect(numbers[^1].ExtractNumbers());
-
-                stack.Add(i, 1);
-                cards.Add(new ScratchCard(i, winningNumbers.ToArray()));
+                var nextCard = orderedCards[j];
+                cards[nextCard] += cards[current];
             }
         }
 
-        public CardStack WinMore()
-        {
-            foreach(var id in stack.Keys)
-            {
-                var points = cards[id].WinningNumbers.Length;
-                for(var idNext = id + 1; idNext <= id + points; idNext++)
-                {
-                    if (stack.ContainsKey(idNext))
-                        stack[idNext] += stack[id];
-                }
-            }
-
-            return this;
-        }
-
-        public int CountPoints() => cards.Sum(card => card.Points());
-        
-        public int CountCards() => stack.Sum(tcard => tcard.Value);
+        return cards.Sum(tcard => tcard.Value);
     }
 
-    record ScratchCard(int Id, int[] WinningNumbers)
+    Dictionary<Card, int> Cards(string input)
+        => (from line in input.Split('\n').Select((card, idx) => (card, idx))
+            let allNumbers = line.card.Split(':')[^1].Split('|')
+            let cardNumbers = Numbers(allNumbers[0])
+            let winningNumbers = Numbers(allNumbers[^1])
+            let matched = cardNumbers.Intersect(winningNumbers).ToArray()
+            select new KeyValuePair<Card, int>(new Card(line.idx, matched), 1))
+        .ToDictionary();
+
+    IEnumerable<int> Numbers(string indata)
+        => from m in Regex.Matches(indata, @"(\d+)") select int.Parse(m.Value);
+
+    record Card(int Id, int[] Matched)
     {
-        public int Points() => (int)Math.Pow(2, WinningNumbers.Length - 1);
+        public int Points() => (int)Math.Pow(2, Matched.Length - 1);
     }
-}
-
-internal static partial class Ext4
-{
-    public static IEnumerable<int> ExtractNumbers(this string data)
-        => from m in NumberPattern().Matches(data) select int.Parse(m.Value);
-
-    [GeneratedRegex(@"(\d+)")]
-    private static partial Regex NumberPattern();
 }
