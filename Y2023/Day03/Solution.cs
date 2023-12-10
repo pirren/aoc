@@ -12,7 +12,6 @@ class Solution : ISolver
     int Solve(string input, Func<Schematic, int> procedure)
         => procedure(Engine(input));
 
-
     int GearRatios(Schematic engine) => 
         engine.Symbols
         .Where(symbol => symbol.IsGear)
