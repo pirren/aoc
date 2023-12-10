@@ -4,41 +4,36 @@ namespace aoc_runner.Y2023.Day07;
 class Solution : ISolver
 {
     public object PartOne(string input) 
+        => Solve(input, false);
+
+    public object PartTwo(string input)
+        => Solve(input, true);
+
+    int Solve(string input, bool jokers)
     {
-        var hands = ParseHands(input, PartOnePairings, false);
+        var hands = GetHands(input, jokers);
         return Winnings(hands);
     }
 
-    public object PartTwo(string input)
+    int Winnings(List<Hand> hands)
     {
-        var hands = ParseHands(input, PartTwoPairings, true);
-        return Winnings(hands); 
-    }
-
-    List<Hand> ParseHands(string input, Func<string, List<int>> parse, bool useJokers)
-    {
-        return (
-            from line in input.Split('\n')
-            let parts = line.Split(' ')
-            let hand = parts[0]
-            let bid = int.Parse(parts[^1])
-
-            let cardGroups = parse(hand)
-
-            select new Hand(hand, bid, cardGroups, useJokers)
-        ).ToList();
-    }
-
-    int Winnings(List<Hand> hands) 
-    {
-        hands.Sort(); 
+        hands.Sort();
         return hands.Select((hand, idx) => hand.Bid * (idx + 1)).Sum();
     }
 
-    List<int> PartOnePairings(string indata)
-        => indata.GroupBy(card => card).Select(cg => cg.Count()).ToList();
+    List<Hand> GetHands(string input, bool jokers) =>
+        (from line in input.Split('\n')
+            let parts = line.Split(' ')
+            let hand = parts[0]
+            let bid = int.Parse(parts[^1])
+            let cardGroups = jokers ? JokerRules (hand) : StandardRules(hand)
+            select new Hand(hand, bid, cardGroups, jokers))
+        .ToList();
 
-    List<int> PartTwoPairings(string indata)
+    List<int> StandardRules(string indata) => 
+        indata.GroupBy(card => card).Select(cg => cg.Count()).ToList();
+
+    List<int> JokerRules(string indata)
     {
         var groups = indata.GroupBy(card => card)
             .Select(cg => cg.Where(g => g != 'J').Count()).ToList();
@@ -52,20 +47,14 @@ class Solution : ISolver
 
     record Hand : IComparable<Hand>
     {
-        private static Dictionary<char, int> CardRanks = new()
-        {
-            { '2', 2 }, { '3', 3 }, { '4', 4 }, { '5', 5 }, { '6', 6 }, 
-            { '7', 7 }, { '8', 8 }, { '9', 9 }, { 'T', 10 }, { 'J', 11 }, 
-            { 'Q', 12 }, { 'K', 13 }, { 'A', 14 }
-        };
+        private static Dictionary<char, int> Values = new() { { 'T', 10 }, { 'J', 11 }, { 'Q', 12 }, { 'K', 13 }, { 'A', 14 } };
 
         public Hand(string cards, int bid, List<int> groups, bool jokerRules = false)
         {
             Cards = cards;
             Bid = bid;
 
-            if (jokerRules)
-                CardRanks['J'] = -1;
+            if (jokerRules) Values['J'] = -1;
 
             PatternValue = groups switch
             {
@@ -90,7 +79,9 @@ class Solution : ISolver
                 .FirstOrDefault(result => result != 0);
         }
 
-        IEnumerable<int> CardValues => Cards.Select(c => CardRanks[c]);
+        IEnumerable<int> CardValues => 
+            Cards.Select(c => char.IsNumber(c) ? c - '0' : Values[c]);
+
         public string Cards { get; init; }
         public int Bid { get; init; }
         public int PatternValue { get; init; } = 0;
