@@ -26,7 +26,7 @@ class Solution : ISolver
             let parts = line.Split(' ')
             let hand = parts[0]
             let bid = int.Parse(parts[^1])
-            let cardGroups = jokers ? JokerRules (hand) : StandardRules(hand)
+            let cardGroups = jokers ? JokerRules(hand) : StandardRules(hand)
             select new Hand(hand, bid, cardGroups, jokers))
         .ToList();
 
