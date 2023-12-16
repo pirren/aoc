@@ -29,7 +29,8 @@ class Solution : ISolver
             
             while (queue.Count != 0)
             {
-                distances.Add(Manhattan(source, queue.Dequeue()));
+                var dest = queue.Dequeue();
+                distances.Add(Manhattan(source, dest));
             }
         }
 
