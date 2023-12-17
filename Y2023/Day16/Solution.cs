@@ -41,8 +41,7 @@ class Solution : ISolver
 
         foreach (var config in configurations(width, height))
         {
-            
-            var closed = new HashSet<(Position at, Direction dir)>([(config.StartAt, config.Direction)]); // Track the 'closed' loops 
+            var closed = new HashSet<(Position at, Direction dir)>([(config.StartAt, config.Direction)]); // Track the 'closed' loops
             var beams = new List<Beam>([new Beam(config.StartAt, config.Direction)]); // Active beams
             var seen = new HashSet<Position>([config.StartAt]); // Visited positions
 
@@ -146,9 +145,9 @@ class Solution : ISolver
     {
         public Position At { get; set; } = at;
         public Direction Direction { get; set; } = direction;
-        public void Move(Position nextAt, Direction dir, HashSet<(Position at, Direction dir)> seen)
+        public void Move(Position nextAt, Direction dir, HashSet<(Position at, Direction dir)> closed)
         {
-            if (seen.Contains((nextAt, dir)))
+            if (closed.Contains((nextAt, dir)))
             {
                 Disable();
                 return;
@@ -156,7 +155,7 @@ class Solution : ISolver
 
             At = nextAt;
             Direction = dir;
-            seen.Add((nextAt, dir));
+            closed.Add((nextAt, dir));
         }
 
         public bool Active { get; set; } = true;
