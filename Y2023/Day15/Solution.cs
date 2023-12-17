@@ -3,15 +3,11 @@ namespace aoc_runner.Y2023.Day15;
 [PuzzleName("Lens Library")]
 class Solution : ISolver
 {
-    public object PartOne(string input) 
-    {
-        return Solve(input, SequenceSum);
-    }
+    public object PartOne(string input) =>
+        Solve(input, SequenceSum);
 
-    public object PartTwo(string input) 
-    {
-        return Solve(input, FocusingPower);
-    }
+    public object PartTwo(string input) =>
+        Solve(input, FocusingPower);
 
     int Solve(string input, Func<Step[], Box[], int> parse)
     {
@@ -21,16 +17,8 @@ class Solution : ISolver
         return parse(steps, boxes);
     }
 
-    int SequenceSum(Step[] steps, Box[] boxes)
-    {
-        var sequenceSum = 0;
-        foreach (var step in steps)
-        {
-            sequenceSum += GetHash(step.ToString());
-        }
-        
-        return sequenceSum;
-    }
+    int SequenceSum(Step[] steps, Box[] boxes) =>
+        steps.Aggregate(0, (sum, step) => sum + GetHash(step.ToString()));
 
     int FocusingPower(Step[] steps, Box[] boxes)
     {
