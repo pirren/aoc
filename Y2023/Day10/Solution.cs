@@ -23,7 +23,6 @@ class Solution : ISolver
         var at = start;
         var steps = 0;
 
-        var (sx, sy) = new Point(start.x, start.y); // Used to order vertices
         List<Point> vertices = [new Point(0, 0)];
         do
         {
@@ -35,7 +34,7 @@ class Solution : ISolver
 
             if (charAt != '|' && charAt != '-')
             {
-                vertices.Add(new Point(next.x - sx, next.y - sy));
+                vertices.Add(new Point(next.x - start.x, next.y - start.y));
                 var ndir = Directions[charAt].First(dir => (-dir.x, -dir.y) != direction);
                 direction = ndir;
             }
@@ -79,13 +78,12 @@ class Solution : ISolver
     Point Next(Point at, Point dir)
         => (at.x + dir.x, at.y + dir.y);
 
-    Point[] StartingDirections(Point start, int width, int height, Map map) =>
+    IEnumerable<Point> StartingDirections(Point start, int width, int height, Map map) =>
         Edges(start, width, height)
             .Where(edge => map[edge] != '.')
             .Select(edge => Directions[map[edge]].FirstOrDefault(pos => (edge.x + pos.x, edge.y + pos.y) == start))
             .Where(found => found != default)
-            .Select(found => (-found.x, -found.y))
-            .ToArray();
+            .Select(found => (-found.x, -found.y));
 
     IEnumerable<Point> Edges(Point start, int width, int height)
     {
