@@ -1,95 +1,57 @@
-using System.Runtime.ExceptionServices;
-using System.Text;
-
 namespace aoc_runner.Y2023.Day13;
 
 [PuzzleName("Point of Incidence")]
 class Solution : ISolver
 {
-    public object PartOne(string input)
-    {
-        // Too low 19918
-        return Solve(input, LargestSymmetry);
-    }
+    public object PartOne(string input) => 
+        Solve(input, IsMirror);
 
-    public object PartTwo(string input)
-    {
-        return Solve(input, LargestSymmetry);
-    }
+    public object PartTwo(string input) =>
+        Solve(input, IsSmudge);
 
-    int Solve(string input, Func<string[], int> parse)
+    int Solve(string input, Func<string[], string[], bool> condition)
     {
-        var mirrors = Mirrors(input).ToArray();
-        var colScore = 0;
-        var rowScore = 0;
-        foreach (var mirror in mirrors)
+        var total = 0;
+        foreach (var block in input.Split("\n\n"))
         {
-            var row = parse(mirror.Rows().ToArray());
-            var col = parse(mirror.Cols().ToArray());
+            var mirror = block.Split('\n');
 
-            if (row > col)
-                rowScore += row;
-            if (col > row)
-                colScore += col;
+            var row = FindReflection(mirror, condition);
+            total += row * 100;
+
+            var col = FindReflection(Rotate90(mirror), condition);
+            total += col;
         }
-
-        return rowScore * 100 + colScore;
+        return total;
     }
 
-
-    int LargestSymmetry(string[] lines)
-        => Enumerable.Range(1, lines.Length - 1).Max(i => Reflects(lines, i - 1, i) ? i : 0);
-
-    bool Reflects(string[] lines, int indexA, int indexB)
+    int FindReflection(string[] mirror, Func<string[], string[], bool> condition)
     {
-        if (!lines[indexA].SequenceEqual(lines[indexB]))
-            return false;
-
-        if (indexA == 0 || indexB == lines.Length - 1)
-            return true;
-
-        return Reflects(lines, indexA - 1, indexB + 1);
-    }
-
-    IEnumerable<Mirror> Mirrors(string input)
-    {
-        var blocks = input.Split("\n\n");
-        foreach (var block in blocks)
+        for (var i = 1; i < mirror.Length; i++)
         {
-            var lines = block.Split('\n');
-            var height = lines.Length;
-            var width = lines.Max(line => line.Length);
+            var above = mirror[..i];
+            var below = mirror[i..];
 
-            var map = new char[width, height];
+            above = above.Skip(above.Length - below.Length).ToArray();
+            below = below.Reverse().Skip(below.Length - above.Length).ToArray();
 
-            for (var y = 0; y < height; y++)
-            {
-                for (var x = 0; x < width; x++)
-                {
-                    map[x, y] = lines[y][x];
-                }
-            }
-
-            yield return new Mirror(map, width, height, lines);
+            if (condition(above, below))
+                return i;
         }
+        return 0;
     }
 
-    record Mirror(char[,] Map, int Width, int Height, string[] Lines)
-    {
+    bool IsMirror(string[] above, string[] below) => 
+        above.SequenceEqual(below);
 
-        public IEnumerable<string> Rows() => Lines;
+    bool IsSmudge(string[] above, string[] below) =>
+        above.Zip(below)
+            .SelectMany(pair => pair.First.Zip(pair.Second))
+            .Where(c => c.First != c.Second)
+            .Count() == 1;
 
-        public IEnumerable<string> Cols() {
-            StringBuilder sb = new();
-            for (var x = 0; x < Width; x++)
-            {
-                for (var y = 0; y < Height; y++)
-                {
-                    sb.Append(Lines[y][x]);
-                }
-                yield return sb.ToString();
-                sb.Clear();
-            }
-        }
-    };
+    string[] Rotate90(string[] mirror) =>
+        Enumerable.Range(0, mirror[0].Length)
+            .Select(x => new string(mirror.Select(y => y[x]).ToArray()))
+            .ToArray();
 }
